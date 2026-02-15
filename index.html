@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🧧 Hồng Bao Lootbox — Lì Xì Tết</title>
+    <meta
+      name="description"
+      content="Mở lootbox nhận lì xì Tết ngẫu nhiên! Phong cách Overwatch & CS:GO với 5 cấp độ hiếm."
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Noto+Serif:wght@700;900&family=Outfit:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS 4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <!-- CSS Modules -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/overwatch.css" />
+    <link rel="stylesheet" href="css/csgo.css" />
+    <link rel="stylesheet" href="css/components.css" />
+
+    <style type="text/tailwindcss">
+      @theme {
+        --color-legendary: #ff9800;
+        --color-legendary-glow: #ffb74d;
+        --color-epic: #9c27b0;
+        --color-epic-glow: #ce93d8;
+        --color-rare: #2196f3;
+        --color-rare-glow: #64b5f6;
+        --color-uncommon: #4caf50;
+        --color-uncommon-glow: #81c784;
+        --color-common: #9e9e9e;
+        --color-common-glow: #bdbdbd;
+        --color-hongbao-red: #c62828;
+        --color-hongbao-dark: #8e0000;
+        --color-hongbao-gold: #ffd54f;
+        --color-hongbao-gold-dark: #c8a415;
+        --font-body: "Be Vietnam Pro", sans-serif;
+        --font-display: "Noto Serif", serif;
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-gradient-to-br from-[#7f0000] via-[#b71c1c] to-[#e53935] font-body text-white overflow-x-hidden"
+  >
+    <!-- ===== FLOATING PARTICLES BACKGROUND ===== -->
+    <div
+      id="particles-bg"
+      class="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+    ></div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="relative z-20 flex flex-wrap items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="text-3xl sm:text-4xl">🧧</span>
+        <div>
+          <h1
+            class="font-display text-xl sm:text-2xl md:text-3xl font-black text-hongbao-gold drop-shadow-lg tracking-wide"
+          >
+            Hồng Bao Lootbox
+          </h1>
+          <p class="text-red-200 text-xs sm:text-sm opacity-80">Chúc Mừng Năm Mới 🎆</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle" id="mode-toggle">
+          <div class="mode-toggle-slider" id="mode-slider"></div>
+          <button class="mode-toggle-btn active" data-mode="overwatch">🎮 OW</button>
+          <button class="mode-toggle-btn" data-mode="csgo">🎰 CS:GO</button>
+        </div>
+        <!-- Mute -->
+        <button
+          id="btn-mute"
+          class="flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl transition-all duration-300 cursor-pointer"
+          title="Bật/tắt âm thanh"
+        >
+          <span class="mute-icon text-lg">🔊</span>
+        </button>
+        <!-- CS:GO Settings (visible only in CS:GO mode) -->
+        <div id="csgo-settings-wrapper" class="relative hidden">
+          <button
+            id="btn-csgo-settings"
+            class="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-md border border-amber-500/40 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 cursor-pointer text-amber-300"
+            title="CS:GO Settings"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            <span class="hidden sm:inline font-semibold text-sm">CS:GO</span>
+          </button>
+          <!-- Popover -->
+          <div id="csgo-settings-popover" class="csgo-popover hidden">
+            <div class="csgo-popover-arrow"></div>
+            <h4 class="text-sm font-bold text-amber-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+              🎰 Cài đặt CS:GO
+            </h4>
+            <!-- Spin Duration -->
+            <div class="mb-3">
+              <label class="text-xs text-white/60 uppercase tracking-wider block mb-2">
+                ⏱️ Thời gian quay
+              </label>
+              <div class="flex items-center gap-3">
+                <input
+                  id="csgo-spin-duration"
+                  type="range"
+                  min="10"
+                  max="30"
+                  step="1"
+                  value="20"
+                  class="csgo-slider flex-1"
+                />
+                <span id="csgo-spin-duration-val" class="text-amber-300 font-bold text-lg min-w-[2.5rem] text-center">12s</span>
+              </div>
+              <p class="text-[10px] text-white/30 mt-1">Thời gian dài = hồi hộp hơn 🎯</p>
+            </div>
+
+            <!-- Spin Width -->
+            <div class="mb-2">
+              <div class="flex justify-between text-xs text-amber-200/60 mb-1">
+                <span>Chiều rộng vòng quay</span>
+                <span id="csgo-width-val">80%</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-amber-200/40">40</span>
+                <input
+                  id="csgo-spin-width"
+                  type="range"
+                  min="40"
+                  max="90"
+                  step="5"
+                  value="80"
+                  class="csgo-slider flex-1"
+                />
+                <span class="text-[10px] text-amber-200/40">90</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Rates Info -->
+        <button
+          id="btn-show-rates"
+          class="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 cursor-pointer"
+          title="Tỷ lệ rơi"
+        >
+          <span class="text-xl">📊</span>
+          <span class="hidden sm:inline font-semibold">Tỷ lệ</span>
+        </button>
+        <!-- Stats -->
+        <button
+          id="btn-history-stats"
+          class="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span class="hidden sm:inline font-semibold">Thống kê</span>
+        </button>
+        <!-- Config -->
+        <button
+          id="btn-config"
+          class="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          <span class="hidden sm:inline font-semibold">Cài đặt</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== MAIN LOOTBOX AREA ===== -->
+    <main
+      class="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-2 sm:px-4"
+    >
+      <!-- Instruction text -->
+      <p
+        id="instruction-text"
+        class="text-red-100 text-lg mb-8 animate-pulse font-medium tracking-wide"
+      >
+        ✨ Nhấn vào hồng bao để mở lì xì ✨
+      </p>
+
+      <!-- ===== OVERWATCH AREA ===== -->
+      <div id="ow-area" class="w-full flex justify-center">
+        <div
+          id="lootbox-container-ow"
+          class="relative cursor-pointer select-none"
+          style="perspective: 1000px"
+        >
+          <!-- Glow ring - OW -->
+          <div
+            id="glow-ring-ow"
+            class="absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500"
+            style="filter: blur(40px); transform: scale(1.3)"
+          ></div>
+
+          <!-- The Hongbao box - OW -->
+          <div
+            id="hongbao-box-ow"
+            class="relative w-64 h-80 md:w-72 md:h-96 transition-transform duration-300 hover:scale-105"
+            style="transform-style: preserve-3d"
+          >
+            <!-- Front face -->
+            <div
+              class="hongbao-front absolute inset-0 rounded-3xl shadow-2xl overflow-hidden border-2 border-yellow-600/50"
+              style="
+                background: linear-gradient(
+                  170deg,
+                  #d32f2f 0%,
+                  #b71c1c 40%,
+                  #880e0e 100%
+                );
+                backface-visibility: hidden;
+              "
+            >
+              <!-- Gold decorative frame -->
+              <div
+                class="absolute inset-3 rounded-2xl border-2 border-yellow-500/40"
+              ></div>
+              <div
+                class="absolute inset-5 rounded-xl border border-yellow-500/20"
+              ></div>
+
+              <!-- Center emblem -->
+              <div
+                class="absolute inset-0 flex flex-col items-center justify-center"
+              >
+                <!-- Fu character -->
+                <div
+                  class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-900/50 border-4 border-yellow-300/60"
+                >
+                  <span
+                    class="font-display text-6xl md:text-7xl text-red-900"
+                    style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3)"
+                    >福</span
+                  >
+                </div>
+                <!-- Label -->
+                <p
+                  class="mt-4 font-display text-yellow-300 text-lg tracking-[0.3em]"
+                >
+                  LÌ XÌ
+                </p>
+                <p class="mt-1 text-yellow-400/60 text-xs tracking-[0.5em]">
+                  HỒNG BAO
+                </p>
+              </div>
+
+              <!-- Corner ornaments -->
+              <div class="absolute top-4 left-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              <div class="absolute top-4 right-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              <div class="absolute bottom-4 left-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              <div class="absolute bottom-4 right-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+
+              <!-- Shimmer effect -->
+              <div class="hongbao-shimmer absolute inset-0 rounded-3xl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CS:GO AREA ===== -->
+      <div id="csgo-area" class="hidden w-full flex flex-col items-center gap-6">
+        <!-- CS:GO Hongbao Container -->
+        <div
+          id="hongbao-container-csgo"
+          class="relative cursor-pointer select-none"
+          style="perspective: 1000px"
+        >
+          <!-- Glow ring - CSGO -->
+          <div
+            id="glow-ring-csgo"
+            class="absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500"
+            style="filter: blur(40px); transform: scale(1.3)"
+          ></div>
+
+          <!-- The Hongbao box - CSGO -->
+          <div
+            id="hongbao-box-csgo"
+            class="relative w-64 h-80 md:w-72 md:h-96 transition-transform duration-300 hover:scale-105"
+            style="transform-style: preserve-3d"
+          >
+            <!-- Front face -->
+            <div
+              class="hongbao-front absolute inset-0 rounded-3xl shadow-2xl overflow-hidden border-2 border-yellow-600/50"
+              style="
+                background: linear-gradient(
+                  170deg,
+                  #d32f2f 0%,
+                  #b71c1c 40%,
+                  #880e0e 100%
+                );
+                backface-visibility: hidden;
+              "
+            >
+              <!-- Gold decorative frame -->
+              <div
+                class="absolute inset-3 rounded-2xl border-2 border-yellow-500/40"
+              ></div>
+              <div
+                class="absolute inset-5 rounded-xl border border-yellow-500/20"
+              ></div>
+
+              <!-- Center emblem -->
+              <div
+                class="absolute inset-0 flex flex-col items-center justify-center"
+              >
+                <!-- Fu character -->
+                <div
+                  class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-900/50 border-4 border-yellow-300/60"
+                >
+                  <span
+                    class="font-display text-6xl md:text-7xl text-red-900"
+                    style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3)"
+                    >福</span
+                  >
+                </div>
+                <!-- Label -->
+                <p
+                  class="mt-4 font-display text-yellow-300 text-lg tracking-[0.3em]"
+                >
+                  LÌ XÌ
+                </p>
+                <p class="mt-1 text-yellow-400/60 text-xs tracking-[0.5em]">
+                  HỒNG BAO
+                </p>
+              </div>
+
+              <!-- Corner ornaments -->
+              <div class="absolute top-4 left-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              <div class="absolute top-4 right-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              <div class="absolute bottom-4 left-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              <div class="absolute bottom-4 right-4 text-yellow-400/50 text-2xl">
+                ✦
+              </div>
+              
+              <!-- Shimmer -->
+              <div class="hongbao-shimmer absolute inset-0 rounded-3xl"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reel -->
+        <div id="csgo-reel-wrapper" class="csgo-reel-wrapper hidden">
+          <div class="csgo-pointer"></div>
+          <div id="csgo-strip" class="csgo-strip"></div>
+        </div>
+      </div>
+
+      <!-- ===== RESULT DISPLAY (shared for both modes) ===== -->
+      <div id="result-display" class="hidden flex-col items-center justify-center mt-8 text-center w-full max-w-md px-4">
+        <div id="result-card" class="relative w-full rounded-3xl p-8 md:p-10 backdrop-blur-xl bg-black/30 border-2 overflow-hidden">
+          <!-- Animated background glow -->
+          <div id="result-card-glow" class="absolute inset-0 opacity-20 rounded-3xl" style="filter: blur(40px);"></div>
+
+          <!-- Content -->
+          <div class="relative z-10">
+            <!-- Tier badge -->
+            <div id="result-tier-badge" class="inline-block px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-5 shadow-lg"></div>
+
+            <!-- Money amount -->
+            <div class="mb-2">
+              <div id="result-amount" class="text-5xl md:text-7xl font-black leading-none" style="font-family: 'Outfit', sans-serif;"></div>
+            </div>
+            <p id="result-label" class="text-base text-white/50 font-medium tracking-widest uppercase">VNĐ</p>
+          </div>
+        </div>
+
+        <!-- Reopen button -->
+        <button id="btn-reopen" class="mt-8 group relative bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-red-900 font-bold px-8 py-4 rounded-2xl shadow-xl transition-all duration-300 hover:scale-110 hover:shadow-yellow-500/30 cursor-pointer">
+          <span class="relative z-10 flex items-center gap-2">🧧 Mở lì xì mới</span>
+        </button>
+      </div>
+
+      <!-- History -->
+      <div id="history-section" class="hidden mt-12 w-full max-w-2xl">
+        <h3
+          class="text-center text-yellow-300/80 text-sm font-semibold uppercase tracking-widest mb-4"
+        >
+          Lịch sử mở
+        </h3>
+        <div
+          id="history-list"
+          class="flex flex-wrap justify-center gap-2"
+        ></div>
+      </div>
+
+    </main>
+
+    <!-- ===== DROP RATE MODAL ===== -->
+    <div id="droprate-overlay" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+      <!-- Backdrop -->
+      <div
+        id="droprate-backdrop"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      ></div>
+
+      <!-- Panel -->
+      <div
+        id="droprate-panel"
+        class="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl backdrop-blur-xl bg-[#0d0d1a]/95 border border-white/10 shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0"
+      >
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h3 class="text-yellow-300 text-base font-bold uppercase tracking-widest flex items-center gap-2">
+            🎰 Tỷ lệ & Giá trị lì xì
+          </h3>
+          <button
+            id="btn-close-rates"
+            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto px-6 py-6 md:px-8">
+          <!-- Tier rows rendered by JS -->
+          <div id="tier-info-rows" class="space-y-3"></div>
+
+          <!-- Total drop rates bar -->
+          <div class="mt-6">
+            <div class="flex items-center justify-between text-xs text-white/40 mb-2">
+              <span>Drop Rate Tổng Quan</span>
+              <span>100%</span>
+            </div>
+            <div id="droprate-bar" class="h-4 rounded-full overflow-hidden flex bg-white/5"></div>
+          </div>
+
+          <!-- Edit button -->
+          <div class="mt-5 text-center">
+            <button id="btn-open-config-inline" class="text-sm text-yellow-300/70 hover:text-yellow-300 underline underline-offset-4 transition-colors cursor-pointer flex items-center gap-1 mx-auto">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+              Chỉnh sửa cài đặt
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RARITY BEAM OVERLAY ===== -->
+    <div
+      id="rarity-beam"
+      class="fixed inset-0 z-30 pointer-events-none opacity-0 flex items-center justify-center"
+    >
+      <div class="beam-column"></div>
+    </div>
+
+    <!-- ===== CONFIG MODAL ===== -->
+    <div id="config-overlay" class="fixed inset-0 z-50 hidden">
+      <!-- Backdrop -->
+      <div
+        id="config-backdrop"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      ></div>
+
+      <!-- Panel -->
+      <div
+        id="config-panel"
+        class="absolute right-0 top-0 h-full w-full max-w-lg bg-gradient-to-b from-gray-900 to-gray-950 shadow-2xl overflow-y-auto transform translate-x-full transition-transform duration-500 ease-out"
+      >
+        <div class="p-6">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+              ⚙️ Cài đặt Lootbox
+            </h2>
+            <button
+              id="btn-close-config"
+              class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Drop rate validation -->
+          <div
+            id="droprate-warning"
+            class="hidden mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-sm"
+          >
+            ⚠️ Tổng tỉ lệ phải bằng 100%! Hiện tại:
+            <span id="droprate-total">0</span>%
+          </div>
+
+          <div
+            id="droprate-ok"
+            class="hidden mb-4 p-3 rounded-xl bg-green-500/20 border border-green-500/40 text-green-300 text-sm"
+          >
+            ✅ Tổng tỉ lệ: 100% — Sẵn sàng!
+          </div>
+
+          <!-- Tier configs -->
+          <div id="tier-configs" class="space-y-4">
+            <!-- Tiers will be generated by JS -->
+          </div>
+
+          <!-- Save button -->
+          <div class="mt-8 flex gap-3">
+            <button
+              id="btn-save-config"
+              class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer"
+            >
+              💾 Lưu cài đặt
+            </button>
+            <button
+              id="btn-reset-config"
+              class="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 cursor-pointer"
+            >
+              🔄 Mặc định
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HISTORY STATS MODAL ===== -->
+    <div id="stats-overlay" class="fixed inset-0 z-50 hidden">
+      <div id="stats-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div id="stats-panel" class="absolute right-0 top-0 h-full w-full max-w-xl bg-gradient-to-b from-gray-900 to-gray-950 shadow-2xl overflow-y-auto transform translate-x-full transition-transform duration-500 ease-out">
+        <div class="p-6">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-white flex items-center gap-2">📊 Thống kê lịch sử</h2>
+            <button id="btn-close-stats" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <!-- Summary cards -->
+          <div id="stats-summary" class="grid grid-cols-2 gap-3 mb-6"></div>
+
+          <!-- Tier breakdown -->
+          <h3 class="text-sm font-semibold text-white/50 uppercase tracking-widest mb-3">Tỷ lệ thực tế</h3>
+          <div id="stats-tier-breakdown" class="space-y-2 mb-6"></div>
+
+          <!-- Filter -->
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white/50 uppercase tracking-widest">Chi tiết</h3>
+            <select id="stats-filter" class="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-sm text-white outline-none cursor-pointer">
+              <option value="all">Tất cả</option>
+              <option value="legendary">🌟 Legendary</option>
+              <option value="epic">💜 Epic</option>
+              <option value="rare">💎 Rare</option>
+              <option value="uncommon">🍀 Uncommon</option>
+              <option value="common">⚪ Common</option>
+            </select>
+          </div>
+
+          <!-- History detail list -->
+          <div id="stats-detail-list" class="space-y-2 mb-6"></div>
+
+          <!-- Empty state -->
+          <div id="stats-empty" class="hidden text-center py-12 text-white/30">
+            <p class="text-4xl mb-3">📭</p>
+            <p>Chưa có lịch sử mở lì xì nào</p>
+          </div>
+
+          <!-- Clear button -->
+          <div class="mt-4 pt-4 border-t border-white/10">
+            <button id="btn-clear-history" class="w-full bg-red-500/15 hover:bg-red-500/25 text-red-400 font-semibold px-4 py-3 rounded-xl transition-all duration-300 cursor-pointer border border-red-500/20 hover:border-red-500/40">
+              🗑️ Xóa toàn bộ lịch sử
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FLASH OVERLAY ===== -->
+    <div
+      id="flash-overlay"
+      class="fixed inset-0 z-40 pointer-events-none opacity-0 bg-white"
+    ></div>
+
+    <!-- JS Modules (order matters: config → effects → sound → ui → overwatch → csgo → app) -->
+    <script src="js/config.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/overwatch.js"></script>
+    <script src="js/csgo.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

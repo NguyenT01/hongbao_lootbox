@@ -1,0 +1,374 @@
+/* ============================================
+   CS:GO — Reel spin opening style
+   ============================================ */
+
+/* Reel container */
+.csgo-reel-wrapper {
+  position: relative;
+  width: 80vw;
+  max-width: 3840px;
+  height: 130px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* Center marker / pointer */
+.csgo-pointer {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 100%;
+  background: #ffd54f;
+  z-index: 10;
+  box-shadow:
+    0 0 15px rgba(255, 213, 79, 0.8),
+    0 0 30px rgba(255, 213, 79, 0.4);
+}
+
+.csgo-pointer::before,
+.csgo-pointer::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+.csgo-pointer::before {
+  top: -2px;
+  border-top: 12px solid #ffd54f;
+}
+
+.csgo-pointer::after {
+  bottom: -2px;
+  border-bottom: 12px solid #ffd54f;
+}
+
+/* Items strip */
+.csgo-strip {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  will-change: transform;
+}
+
+/* Individual reel item */
+.csgo-item {
+  flex-shrink: 0;
+  width: 120px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  transition: background-color 0.15s;
+}
+
+.csgo-item-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.csgo-item-value {
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.csgo-item-tier {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+
+/* Landing highlight */
+.csgo-item.winner-highlight {
+  z-index: 10;
+  border: 2px solid var(--winner-color);
+  box-shadow:
+    0 0 15px var(--winner-color),
+    inset 0 0 10px rgba(255, 255, 255, 0.2);
+  filter: brightness(1.2);
+}
+
+/* Reel gradient fade edges */
+.csgo-reel-wrapper::before,
+.csgo-reel-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 80px;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.csgo-reel-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.csgo-reel-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.8), transparent);
+}
+
+/* Reel open button */
+.csgo-open-btn {
+  transition: all 0.3s ease;
+}
+
+.csgo-open-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(255, 213, 79, 0.4);
+}
+
+.csgo-open-btn:active {
+  transform: scale(0.98);
+}
+
+/* Spinning state — disable pointer */
+.csgo-reel-wrapper.spinning {
+  pointer-events: none;
+}
+
+.csgo-reel-wrapper.spinning .csgo-pointer {
+  animation: pointerGlow 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes pointerGlow {
+  0% {
+    box-shadow:
+      0 0 15px rgba(255, 213, 79, 0.8),
+      0 0 30px rgba(255, 213, 79, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 25px rgba(255, 213, 79, 1),
+      0 0 50px rgba(255, 213, 79, 0.6);
+  }
+}
+
+/* ===== CS:GO Settings Popover ===== */
+.csgo-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 280px;
+  padding: 20px;
+  background: rgba(20, 20, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(255, 193, 7, 0.1);
+  z-index: 100;
+  animation: popoverIn 0.2s ease-out;
+}
+
+.csgo-popover.hidden {
+  display: none;
+}
+
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.csgo-popover-arrow {
+  position: absolute;
+  top: -6px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
+  background: rgba(20, 20, 35, 0.95);
+  border-top: 1px solid rgba(255, 193, 7, 0.25);
+  border-left: 1px solid rgba(255, 193, 7, 0.25);
+  transform: rotate(45deg);
+}
+
+/* Custom range slider */
+.csgo-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  cursor: pointer;
+}
+
+.csgo-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffc107, #ff9800);
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.csgo-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+}
+
+.csgo-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffc107, #ff9800);
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+  border: none;
+  cursor: pointer;
+}
+
+/* ===== RESPONSIVE — Tablet ===== */
+@media (max-width: 768px) {
+  .csgo-reel-wrapper {
+    width: 100%;
+    height: 110px;
+    border-radius: 12px;
+  }
+
+  .csgo-item {
+    width: 100px;
+  }
+
+  .csgo-item-emoji {
+    font-size: 24px;
+  }
+
+  .csgo-item-value {
+    font-size: 11px;
+  }
+
+  .csgo-item-tier {
+    font-size: 8px;
+  }
+
+  .csgo-pointer::before,
+  .csgo-pointer::after {
+    border-left-width: 8px;
+    border-right-width: 8px;
+  }
+
+  .csgo-pointer::before {
+    border-top-width: 10px;
+  }
+
+  .csgo-pointer::after {
+    border-bottom-width: 10px;
+  }
+
+  .csgo-popover {
+    min-width: 240px;
+  }
+}
+
+/* ===== RESPONSIVE — Mobile ===== */
+@media (max-width: 480px) {
+  .csgo-reel-wrapper {
+    height: 95px;
+    border-radius: 10px;
+    border-width: 1px;
+  }
+
+  .csgo-item {
+    width: 80px;
+    gap: 2px;
+  }
+
+  .csgo-item-emoji {
+    font-size: 20px;
+  }
+
+  .csgo-item-value {
+    font-size: 10px;
+  }
+
+  .csgo-item-tier {
+    font-size: 7px;
+  }
+
+  .csgo-pointer {
+    width: 3px;
+  }
+
+  .csgo-pointer::before,
+  .csgo-pointer::after {
+    border-left-width: 6px;
+    border-right-width: 6px;
+  }
+
+  .csgo-pointer::before {
+    border-top-width: 8px;
+  }
+
+  .csgo-pointer::after {
+    border-bottom-width: 8px;
+  }
+
+  .csgo-reel-wrapper::before,
+  .csgo-reel-wrapper::after {
+    width: 40px;
+  }
+
+  .csgo-popover {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 32px;
+    animation: popoverSlideUp 0.3s ease-out;
+  }
+
+  .csgo-popover-arrow {
+    display: none;
+  }
+
+  @keyframes popoverSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .csgo-open-btn {
+    font-size: 14px;
+    padding: 12px 24px;
+  }
+}
