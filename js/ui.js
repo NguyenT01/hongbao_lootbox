@@ -26,12 +26,15 @@ function showToast(message) {
   }, 2000);
 }
 
-// ===== CONFIG PANEL =====
+// ===== CONFIG PANEL (Quick Edit for Current Lootbox) =====
 function renderConfigPanel() {
+  if (!currentLootbox) return;
+  const cfg = currentLootbox.config;
+
   const tierConfigsEl = document.querySelector("#tier-configs");
   tierConfigsEl.innerHTML = "";
   TIERS.forEach((tier) => {
-    const tierCfg = config[tier.id];
+    const tierCfg = cfg[tier.id];
     const card = document.createElement("div");
     card.className = "tier-config-card";
     card.style.background = tier.bgColor;
@@ -95,6 +98,8 @@ function validateDropRates() {
 }
 
 function saveConfig() {
+  if (!currentLootbox) return;
+  
   const configPanel = document.querySelector("#config-panel");
   let totalRate = 0;
   const newConfig = {};
@@ -130,16 +135,22 @@ function saveConfig() {
     return;
   }
 
-  config = newConfig;
-  saveConfigToStorage();
+  // Save to current lootbox
+  LootboxData.update(currentLootbox.id, { config: newConfig });
+  currentLootbox.config = newConfig; // Local update
+
   closeConfig();
   renderTierInfoPanel();
-  showToast("✅ Đã lưu cài đặt!");
+  showToast("✅ Đã lưu cài đặt cho " + currentLootbox.name + "!");
 }
 
 function resetConfig() {
-  config = getDefaultConfig();
-  saveConfigToStorage();
+  if (!currentLootbox) return;
+  const defConfig = getDefaultConfig();
+  
+  LootboxData.update(currentLootbox.id, { config: defConfig });
+  currentLootbox.config = defConfig;
+  
   renderConfigPanel();
   renderTierInfoPanel();
   showToast("🔄 Đã khôi phục mặc định!");
@@ -149,32 +160,51 @@ function openConfig() {
   const configOverlay = document.querySelector("#config-overlay");
   const configPanel = document.querySelector("#config-panel");
   configOverlay.classList.remove("hidden");
+  
+  // Render fresh data
   renderConfigPanel();
-  requestAnimationFrame(() => {
-    configPanel.classList.remove("translate-x-full");
-    configPanel.classList.add("translate-x-0");
-  });
+
+  gsap.fromTo(
+    configOverlay,
+    { opacity: 0 },
+    { opacity: 1, duration: 0.3 }
+  );
+  gsap.fromTo(
+    configPanel,
+    { y: 50, opacity: 0, scale: 0.95 },
+    { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.2)" }
+  );
 }
 
 function closeConfig() {
   const configOverlay = document.querySelector("#config-overlay");
   const configPanel = document.querySelector("#config-panel");
-  configPanel.classList.remove("translate-x-0");
-  configPanel.classList.add("translate-x-full");
-  setTimeout(() => {
-    configOverlay.classList.add("hidden");
-  }, 500);
+
+  gsap.to(configPanel, {
+    y: 50,
+    opacity: 0,
+    scale: 0.95,
+    duration: 0.3,
+  });
+  gsap.to(configOverlay, {
+    opacity: 0,
+    duration: 0.3,
+    onComplete: () => configOverlay.classList.add("hidden"),
+  });
 }
 
 // ===== TIER INFO PANEL =====
 function renderTierInfoPanel() {
-  const tierInfoRows = document.querySelector("#tier-info-rows");
   const droprateBar = document.querySelector("#droprate-bar");
+  const tierInfoRows = document.querySelector("#tier-info-rows");
+  
+  // Use current config or default
+  const cfg = currentLootbox ? currentLootbox.config : getDefaultConfig();
 
   tierInfoRows.innerHTML = "";
 
   TIERS.forEach((tier) => {
-    const tierCfg = config[tier.id];
+    const tierCfg = cfg[tier.id];
     const row = document.createElement("div");
     row.className = "tier-info-row flex items-center gap-3 p-3 rounded-2xl transition-all duration-300 hover:bg-white/5";
 
@@ -207,7 +237,7 @@ function renderTierInfoPanel() {
   // Stacked drop rate bar
   droprateBar.innerHTML = "";
   TIERS.forEach((tier) => {
-    const tierCfg = config[tier.id];
+    const tierCfg = cfg[tier.id];
     if (tierCfg.rate <= 0) return;
 
     const segment = document.createElement("div");
@@ -249,14 +279,99 @@ function closeRates() {
   }, 300);
 }
 
+// ===== RESULT DISPLAY =====
+function displayResult(amount) {
+    const resultAmount = document.querySelector("#result-amount");
+    const formatted = formatMoney(amount);
+    resultAmount.textContent = formatted;
+    
+    // Dynamic Font Size for large numbers
+    resultAmount.className = "font-black leading-none transition-all duration-300"; // Reset base classes
+    resultAmount.style.fontFamily = "'Outfit', sans-serif";
+    
+    if (amount >= 10000000) { // 10m+
+        resultAmount.classList.add("text-4xl", "md:text-5xl");
+    } else if (amount >= 1000000) { // 1m+
+        resultAmount.classList.add("text-5xl", "md:text-6xl");
+    } else {
+        resultAmount.classList.add("text-5xl", "md:text-7xl");
+    }
+}
+
 // ===== STATS PANEL =====
+let currentStatsTab = "global"; // "global" | "current"
+
+function initLootboxManagerUI() {
+    // Header button
+    const btnManage = document.querySelector("#btn-manage-lootboxes");
+    if (btnManage) btnManage.addEventListener("click", openLootboxManager);
+
+    // Manager Modal
+    document.querySelector("#btn-close-manager").addEventListener("click", closeLootboxManager);
+    document.querySelector("#manager-backdrop").addEventListener("click", closeLootboxManager);
+    document.querySelector("#btn-create-lootbox").addEventListener("click", () => openLootboxEditor(null));
+
+    // Editor Modal
+    document.querySelector("#btn-close-editor").addEventListener("click", closeLootboxEditor);
+    document.querySelector("#editor-backdrop").addEventListener("click", closeLootboxEditor);
+    document.querySelector("#btn-cancel-editor").addEventListener("click", closeLootboxEditor);
+    document.querySelector("#editor-form").addEventListener("submit", saveLootboxEditor);
+    
+    // Stats UI
+    initStatsUI();
+}
+
+function initStatsUI() {
+    document.querySelector("#btn-stats-global").addEventListener("click", () => switchStatsTab("global"));
+    document.querySelector("#btn-stats-current").addEventListener("click", () => switchStatsTab("current"));
+    document.querySelector("#stats-filter-lootbox").addEventListener("change", renderStats);
+}
+
+function switchStatsTab(tab) {
+    currentStatsTab = tab;
+    const filterWrapper = document.querySelector("#stats-filter-wrapper");
+    
+    // Update Buttons
+    const btnGlobal = document.querySelector("#btn-stats-global");
+    const btnCurrent = document.querySelector("#btn-stats-current");
+    
+    if (tab === "global") {
+        btnGlobal.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-white/20 text-white shadow-sm transition-all";
+        btnCurrent.className = "flex-1 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all";
+        filterWrapper.classList.remove("hidden");
+    } else {
+        btnGlobal.className = "flex-1 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all";
+        btnCurrent.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-white/20 text-white shadow-sm transition-all";
+        filterWrapper.classList.add("hidden");
+    }
+    
+    renderStats();
+}
+
 function openStats() {
   const statsOverlay = document.querySelector("#stats-overlay");
   const statsPanel = document.querySelector("#stats-panel");
   const statsFilter = document.querySelector("#stats-filter");
+  const lootboxFilter = document.querySelector("#stats-filter-lootbox");
+  
   statsOverlay.classList.remove("hidden");
+  
+  // Populate Lootbox Filter
+  const boxes = LootboxData.getAll();
+  // Keep first option "All"
+  lootboxFilter.innerHTML = '<option value="all">Tất cả loại hộp</option>';
+  boxes.forEach(box => {
+      const opt = document.createElement("option");
+      opt.value = box.id;
+      opt.textContent = box.name;
+      opt.className = "text-black"; // Ensure visibility
+      lootboxFilter.appendChild(opt);
+  });
+  lootboxFilter.value = "all";
+  
   statsFilter.value = "all";
-  renderStats();
+  switchStatsTab("global"); // Default to global
+  
   requestAnimationFrame(() => {
     statsPanel.classList.remove("translate-x-full");
     statsPanel.classList.add("translate-x-0");
@@ -277,24 +392,37 @@ function renderStats() {
   const statsSummary = document.querySelector("#stats-summary");
   const statsTierBreakdown = document.querySelector("#stats-tier-breakdown");
   const statsDetailList = document.querySelector("#stats-detail-list");
-  const statsEmpty = document.querySelector("#stats-empty");
+  const lootboxFilter = document.querySelector("#stats-filter-lootbox");
+  
+  // Get Data based on Tab & Filter
+  let data = [];
+  if (currentStatsTab === "global") {
+      data = history; // Global variable
+      
+      // Apply Filter
+      const filterId = lootboxFilter.value;
+      if (filterId !== "all") {
+          data = data.filter(item => item.lootboxId === filterId);
+      }
+      
+  } else {
+      if (currentLootbox && currentLootbox.stats && currentLootbox.stats.history) {
+          data = currentLootbox.stats.history;
+      }
+  }
 
-  if (history.length === 0) {
-    statsEmpty.classList.remove("hidden");
-    statsSummary.classList.add("hidden");
-    statsTierBreakdown.classList.add("hidden");
+  if (!data || data.length === 0) {
+    statsSummary.innerHTML = "";
+    statsTierBreakdown.innerHTML = '<p class="text-center text-white/30 py-4">Chưa có dữ liệu thống kê.</p>';
     statsDetailList.innerHTML = "";
     return;
   }
-
-  statsEmpty.classList.add("hidden");
-  statsSummary.classList.remove("hidden");
-  statsTierBreakdown.classList.remove("hidden");
-
-  const totalOpens = history.length;
-  const totalMoney = history.reduce((s, h) => s + h.value, 0);
-  const avgMoney = Math.round(totalMoney / totalOpens);
-  const bestPull = history.reduce((best, h) => h.value > best.value ? h : best, history[0]);
+  
+  // Render Summary
+  const totalOpens = data.length;
+  const totalMoney = data.reduce((s, h) => s + h.value, 0);
+  const avgMoney = totalOpens > 0 ? Math.round(totalMoney / totalOpens) : 0;
+  const bestPull = data.reduce((best, h) => h.value > best.value ? h : best, data[0]);
   const bestTier = TIERS.find((t) => t.id === bestPull.tier);
 
   statsSummary.innerHTML = `
@@ -316,11 +444,31 @@ function renderStats() {
     </div>
   `;
 
+  // Render Breakdown
   statsTierBreakdown.innerHTML = "";
   TIERS.forEach((tier) => {
-    const count = history.filter((h) => h.tier === tier.id).length;
+    const count = data.filter((h) => h.tier === tier.id).length;
     const actualRate = totalOpens > 0 ? ((count / totalOpens) * 100).toFixed(1) : 0;
-    const configRate = config[tier.id].rate;
+    
+    // Config rate check
+    let configRate = 0;
+    let showConfigRate = false;
+
+    if (currentStatsTab === "current" && currentLootbox) {
+        configRate = currentLootbox.config[tier.id].rate;
+        showConfigRate = true;
+    } else {
+        // Global tab
+        const filterId = lootboxFilter.value;
+        if (filterId !== "all") {
+             // Find config of that lootbox
+             const targetBox = LootboxData.getAll().find(b => b.id === filterId);
+             if (targetBox) {
+                 configRate = targetBox.config[tier.id].rate;
+                 showConfigRate = true;
+             }
+        }
+    }
 
     const row = document.createElement("div");
     row.className = "flex items-center gap-3 p-2 rounded-xl";
@@ -332,8 +480,7 @@ function renderStats() {
           <span class="text-xs font-semibold" style="color: ${tier.color};">${tier.name}</span>
           <div class="text-xs text-white/40">
             <span class="font-bold" style="color: ${tier.color};">${actualRate}%</span>
-            <span class="text-white/20 mx-1">|</span>
-            <span>cài đặt: ${configRate}%</span>
+            ${showConfigRate ? `<span class="text-white/20 mx-1">|</span><span>cài đặt: ${configRate}%</span>` : ""}
           </div>
         </div>
         <div class="h-2 rounded-full bg-white/5 overflow-hidden relative">
@@ -345,17 +492,77 @@ function renderStats() {
     statsTierBreakdown.appendChild(row);
   });
 
-  renderStatsDetail();
+  renderStatsDetail(data); // Pass data directly
 }
 
-function renderStatsDetail() {
+function clearHistory() {
+  showConfirmModal(() => {
+      // Clear Global History
+      history = [];
+      localStorage.setItem("hb_history", JSON.stringify(history));
+
+      // Clear ALL Lootbox Stats
+      LootboxData.resetAllStats();
+
+      renderHistory();
+      renderStats();
+      
+      // Also clear detail list in UI
+      document.querySelector("#stats-detail-list").innerHTML = "";
+  });
+}
+
+function showConfirmModal(onConfirm) {
+    const modal = document.querySelector("#confirm-modal");
+    const backdrop = document.querySelector("#confirm-backdrop");
+    const btnCancel = modal.querySelector(".btn-cancel");
+    const btnConfirm = modal.querySelector(".btn-confirm");
+
+    if (!modal) return;
+
+    const close = () => {
+        modal.classList.add("hidden");
+        // Cleanup
+        btnConfirm.onclick = null;
+        btnCancel.onclick = null;
+        backdrop.onclick = null;
+    };
+
+    const confirmAction = () => {
+        onConfirm();
+        close();
+    };
+
+    btnConfirm.onclick = confirmAction;
+    btnCancel.onclick = close;
+    backdrop.onclick = close;
+
+    modal.classList.remove("hidden");
+    
+    // Animation
+    gsap.fromTo(modal.querySelector("div[class*='relative']"), 
+        { scale: 0.95, opacity: 0 }, 
+        { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }
+    );
+}
+
+function renderStatsDetail(data) {
   const statsFilter = document.querySelector("#stats-filter");
   const statsDetailList = document.querySelector("#stats-detail-list");
   const filter = statsFilter.value;
-  const filtered = filter === "all" ? history : history.filter((h) => h.tier === filter);
+  
+  // Use passed data or fetch if null (legacy support)
+  if (!data) {
+      if (currentStatsTab === "global") data = history;
+      else if (currentLootbox) data = currentLootbox.stats.history;
+      else data = [];
+  }
+  
+  const filtered = filter === "all" ? data : data.filter((h) => h.tier === filter);
 
   statsDetailList.innerHTML = "";
-  statsDetailList.className = "space-y-2 mb-6 stats-detail-scroll";
+  // Ensure class for scrolling
+  statsDetailList.className = "space-y-2 mb-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2"; 
 
   if (filtered.length === 0) {
     statsDetailList.innerHTML = '<p class="text-center text-white/20 py-6 text-sm">Không có dữ liệu cho bộ lọc này</p>';
@@ -363,10 +570,19 @@ function renderStatsDetail() {
   }
 
   filtered.forEach((item, i) => {
-    const tier = TIERS.find((t) => t.id === item.tier);
+    const tier = TIERS.find((t) => t.id === item.tier); // stats history uses 'tier' (id string), lootbox stats uses 'tierId' (string)
+    // Legacy mapping: global history uses 'tier', LootboxData uses 'tierId' (from previous step 1192 app.js check)
+    // Wait, in app.js addToHistory:
+    // const item = { tier: tier.id ... } 
+    // So both use 'tier'.
+    // BUT LootboxData.addHistoryItem uses the passed item.
+    // So they are consistent.
+    
     if (!tier) return;
 
-    const time = new Date(item.time);
+    const time = new Date(item.time || item.timestamp); // Handle both keys if mixed (app.js uses time, ui.js addToHistory used timestamp in previous version)
+    // app.js uses 'time'.
+
     const timeStr = time.toLocaleString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -391,18 +607,236 @@ function renderStatsDetail() {
   });
 }
 
-function clearHistory() {
-  if (history.length === 0) {
-    showToast("📭 Không có lịch sử để xóa");
-    return;
-  }
 
-  const confirmed = confirm("Bạn có chắc muốn xóa toàn bộ lịch sử mở lì xì?");
-  if (!confirmed) return;
 
-  history = [];
-  localStorage.removeItem("hb_history");
-  renderHistory();
-  renderStats();
-  showToast("🗑️ Đã xóa toàn bộ lịch sử!");
+// ===== LOOTBOX MANAGER LOGIC =====
+
+function openLootboxManager() {
+    const modal = document.querySelector("#lootbox-manager-modal");
+    modal.classList.remove("hidden");
+    renderLootboxGrid();
+    
+    gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+}
+
+function closeLootboxManager() {
+    const modal = document.querySelector("#lootbox-manager-modal");
+    gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => modal.classList.add("hidden") });
+}
+
+function renderLootboxGrid() {
+    const grid = document.querySelector("#lootbox-grid");
+    grid.innerHTML = "";
+    
+    const boxes = LootboxData.getAll();
+    const selected = LootboxData.getSelected();
+
+    boxes.forEach(box => {
+        const isSelected = selected && selected.id === box.id;
+        
+        const el = document.createElement("div");
+        el.className = `relative p-4 rounded-2xl border-2 transition-all cursor-pointer group ${isSelected ? "border-yellow-500 bg-yellow-500/10" : "border-white/10 bg-white/5 hover:border-white/30"}`;
+        
+        // Mini Preview
+        const gradient = box.style.bgGradient;
+        
+        el.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+                <div class="w-12 h-16 rounded-lg mb-3 shadow-lg" style="background: ${gradient}; border: 1px solid ${box.style.borderColor}"></div>
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <button class="p-1.5 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500 hover:text-white btn-edit-lb" data-id="${box.id}" title="Edit">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                     </button>
+                     <button class="p-1.5 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500 hover:text-white btn-delete-lb" data-id="${box.id}" title="Delete">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                     </button>
+                </div>
+            </div>
+            
+            <h3 class="font-bold text-white text-lg truncate">${box.name}</h3>
+            <p class="text-xs text-white/50">${box.stats.totalOpened} đã mở</p>
+            
+            ${isSelected ? '<div class="absolute top-2 right-2 text-yellow-500"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>' : ''}
+        `;
+        
+        // Select handler (click on card, ignore buttons)
+        el.addEventListener("click", (e) => {
+            if (e.target.closest("button")) return;
+            selectLootbox(box.id);
+        });
+        
+        // Edit handler
+        const btnEdit = el.querySelector(".btn-edit-lb");
+        if (btnEdit) btnEdit.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openLootboxEditor(box.id);
+        });
+        
+        // Delete handler
+        const btnDelete = el.querySelector(".btn-delete-lb");
+        if (btnDelete) btnDelete.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteLootbox(box.id);
+        });
+
+        grid.appendChild(el);
+    });
+}
+
+function selectLootbox(id) {
+    if (LootboxData.setSelected(id)) {
+        updateLootboxUI(); // From app.js
+        renderLootboxGrid(); // Re-render to update highlight
+        showToast("✅ Đã chọn hộp!");
+    }
+}
+
+function deleteLootbox(id) {
+    if (confirm("Bạn có chắc muốn xóa Hộp này?")) {
+        if (LootboxData.remove(id)) {
+            renderLootboxGrid();
+            updateLootboxUI(); // In case currently selected was deleted (it defaults to first)
+            showToast("🗑️ Đã xóa!");
+        }
+    }
+}
+
+function openLootboxEditor(id) {
+    isEditingId = id;
+    const modal = document.querySelector("#lootbox-editor-modal");
+    const form = document.querySelector("#editor-form");
+    const container = document.querySelector("#editor-tiers-container");
+    
+    // Clear/Populate Form
+    if (id) {
+        // Edit Mode
+        const box = LootboxData.getById(id);
+        document.querySelector("#editor-title").textContent = "Chỉnh sửa: " + box.name;
+        document.querySelector("#edit-name").value = box.name;
+        
+        document.querySelector("#edit-color-border").value = box.style.borderColor;
+        document.querySelector("#edit-label-main").value = box.style.labelMain;
+        document.querySelector("#edit-label-sub").value = box.style.labelSub;
+        document.querySelector("#edit-color-text").value = box.style.textColor;
+        
+        if (box.style.colorStart) {
+             document.querySelector("#edit-color-start").value = box.style.colorStart;
+             document.querySelector("#edit-color-end").value = box.style.colorEnd;
+        }
+
+        // Drop Rates
+        container.innerHTML = "";
+        TIERS.forEach(tier => {
+           const tCfg = box.config[tier.id];
+           renderTierEditorRow(container, tier, tCfg);
+        });
+        
+    } else {
+        // Create Mode
+        document.querySelector("#editor-title").textContent = "Tạo Hồng Bao Mới";
+        form.reset();
+        
+        // Defaults
+         document.querySelector("#edit-color-start").value = "#d32f2f";
+         document.querySelector("#edit-color-end").value = "#880e0e";
+         document.querySelector("#edit-color-border").value = "#fdd835";
+         document.querySelector("#edit-color-text").value = "#ffeb3b";
+        
+        // Tiers
+        container.innerHTML = "";
+        const defCfg = getDefaultConfig();
+        TIERS.forEach(tier => {
+           const tCfg = defCfg[tier.id];
+           renderTierEditorRow(container, tier, tCfg); 
+        });
+    }
+
+    modal.classList.remove("hidden");
+    gsap.fromTo(modal, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+}
+
+function renderTierEditorRow(container, tier, data) {
+    const div = document.createElement("div");
+    div.className = "p-3 bg-white/5 rounded-xl border border-white/5";
+    div.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+            <span>${tier.emoji}</span>
+            <span class="font-bold text-sm" style="color: ${tier.color};">${tier.name}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+             <div>
+                <label class="text-xs text-white/40 block mb-1">Tỷ lệ (%)</label>
+                <input type="number" step="0.5" class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-white edit-rate" data-tier="${tier.id}" value="${data.rate}">
+             </div>
+             <div>
+                <label class="text-xs text-white/40 block mb-1">Giá trị (VNĐ)</label>
+                <input type="text" class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-sm text-white edit-vals" data-tier="${tier.id}" value="${data.values.join(",")}">
+             </div>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function closeLootboxEditor() {
+    const modal = document.querySelector("#lootbox-editor-modal");
+    gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => modal.classList.add("hidden") });
+}
+
+function saveLootboxEditor(e) {
+    e.preventDefault();
+    
+    // Gather Data
+    const name = document.querySelector("#edit-name").value;
+    const cStart = document.querySelector("#edit-color-start").value;
+    const cEnd = document.querySelector("#edit-color-end").value;
+    
+    // Generate gradient
+    const bgGradient = `linear-gradient(170deg, ${cStart} 0%, ${cEnd} 100%)`;
+    
+    const style = {
+        name, 
+        bgGradient,
+        borderColor: document.querySelector("#edit-color-border").value,
+        accentColor: document.querySelector("#edit-color-border").value, 
+        labelMain: document.querySelector("#edit-label-main").value,
+        labelSub: document.querySelector("#edit-label-sub").value,
+        textColor: document.querySelector("#edit-color-text").value,
+        colorStart: cStart,
+        colorEnd: cEnd 
+    };
+    
+    // Config
+    const newConfig = {};
+    TIERS.forEach(tier => {
+        const rate = parseFloat(document.querySelector(`.edit-rate[data-tier="${tier.id}"]`).value) || 0;
+        const valStr = document.querySelector(`.edit-vals[data-tier="${tier.id}"]`).value;
+        const values = valStr.split(",").map(v => parseInt(v.trim())).filter(n => !isNaN(n));
+        
+        newConfig[tier.id] = { rate, values };
+    });
+    
+    // Validate Rates
+    const totalRate = Object.values(newConfig).reduce((acc, c) => acc + c.rate, 0);
+    if (Math.abs(totalRate - 100) > 0.1) {
+        alert(`Tổng tỷ lệ hiện là ${totalRate}%. Hãy điều chỉnh về 100%!`);
+        return;
+    }
+    
+    if (isEditingId) {
+        // Update
+        LootboxData.update(isEditingId, { name, style, config: newConfig });
+        showToast("✅ Đã cập nhật!");
+    } else {
+        // Create
+        LootboxData.create(name, style, newConfig);
+        showToast("✨ Đã tạo Hồng Bao mới!");
+    }
+    
+    closeLootboxEditor();
+    renderLootboxGrid();
+    
+    // If we edited current lootbox, refresh UI
+    if (isEditingId === currentLootbox.id) {
+        updateLootboxUI();
+    }
 }

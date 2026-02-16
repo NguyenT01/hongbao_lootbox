@@ -16,22 +16,22 @@ It's perfect for family gatherings, office parties, or friends to randomly distr
 
 ### Features
 
+- **Multi-Lootbox Manager**: Create, edit, and delete different types of Lootboxes (e.g., "Family", "Friends", "VIP"). Each box has its own appearance and drop rates.
+- **Advanced Statistics**: View global stats or filter by specific Lootbox. Includes a "Clear History" function with a custom confirmation dialog.
 - **Two Exciting Modes**:
   - **Overwatch Mode**: 3D box opening animation, rarity beams, and explosive reveal effects.
-  - **CS:GO Mode**: Classic spinning reel mechanic with a suspenseful horizontal scroll.
-- **Customizable Drop Rates**: Configure the probability for each rarity tier (Legendary, Epic, Rare, Uncommon, Common).
-- **Money Pool Management**: Input a list of money values (e.g., 50k, 100k, 500k) for each tier. The app randomly picks from the available pool.
-- **History Tracking**: Keeps a log of recent openings.
-- **Responsive Design**: Works on desktop and mobile.
-- **Visuals & Sound**: High-quality animations (GSAP), particle effects, and sound effects for a premium feel.
+  - **CS:GO Mode**: Classic spinning reel mechanic with customizable spin duration and width.
+- **Customizable Appearance**: Change colors, gradients, and texts for each Lootbox to match your theme.
+- **Sound System**: Distinct sound effects for each rarity tier, including "Heavenly" sounds for Legendary items.
+- **Responsive Design**: Optimized for mobile and desktop.
 
 ### Tech Stack
 
 - **HTML5 / CSS3**
-- **JavaScript (Vanilla)**
-- **Tailwind CSS v4** (via CDN for instant styling)
-- **GSAP** (GreenSock Animation Platform) for animations
-- **Canvas Confetti** for celebration effects
+- **JavaScript (Vanilla + Modules)**
+- **Tailwind CSS v4** (via CDN)
+- **GSAP** (GreenSock Animation Platform)
+- **Canvas Confetti**
 
 ### How to Run
 
@@ -65,10 +65,11 @@ npx serve .
 
 ### Usage Guide
 
-1. **Setup**: Click the **Settings** (Gear icon) to configure drop rates and add money values for each tier.
-2. **Choose Mode**: Toggle between **OW** (Overwatch) and **CS:GO** using the switch at the top.
-3. **Open**: Click the Hongbao (Red Envelope) to open!
-4. **Enjoy**: Watch the animation and see what you get.
+1. **Manage Boxes**: Click **Manage** (Backpack icon) to create new Lootboxes or select an existing one.
+2. **Configure**: Click **Settings** (Gear icon) to customize the drop rates, money pool, and visual theme (colors, text) for the current box.
+3. **Choose Mode**: Toggle between **OW** (Overwatch) and **CS:GO** using the switch at the top.
+4. **Open**: Click the Hongbao (Red Envelope) to open!
+5. **Statistics**: Click **Stats** (Chart icon) to view opening history and drop rate performance.
 
 ---
 
@@ -84,13 +85,13 @@ npx serve .
 
 ### Tính năng
 
+- **Quản lý Đa Hộp**: Tạo, sửa, xóa nhiều loại Hồng Bao khác nhau (ví dụ: "Cho Gia đình", "Cho Bạn bè", "VIP"). Mỗi hộp có giao diện và tỷ lệ riêng.
+- **Thống Kê Chi Tiết**: Xem thống kê tổng hợp hoặc theo từng loại hộp. Xoá lịch sử dễ dàng với giao diện xác nhận an toàn.
 - **Hai Chế độ Mở quà**:
   - **Chế độ Overwatch**: Hiệu ứng mở hộp 3D, tia sáng phân loại độ hiếm và hiệu ứng nổ tung hoành tráng.
-  - **Chế độ CS:GO**: Hiệu ứng vòng quay (reel) chạy ngang đầy kịch tính như mở hòm trong game bắn súng.
-- **Cấu hình Tỷ lệ**: Tự do cài đặt tỷ lệ trúng cho từng cấp độ (Huyền Thoại, Sử Thi, Hiếm, v.v.).
-- **Quản lý Tiền thưởng**: Nhập danh sách các tờ tiền (ví dụ: 10k, 20k, 500k) cho từng cấp. Ứng dụng sẽ chọn ngẫu nhiên từ kho tiền bạn nhập.
-- **Lịch sử**: Xem lại danh sách những người vừa mở.
-- **Giao diện Đẹp mắt**: Thiết kế chuẩn responsive (điện thoại & máy tính), âm thanh sống động, hiệu ứng pháo hoa.
+  - **Chế độ CS:GO**: Hiệu ứng vòng quay (reel) chạy ngang đầy kịch tính, tuỳ chỉnh thời gian và độ rộng.
+- **Tuỳ biến Giao diện**: Chỉnh sửa màu sắc, chữ viết, và màu viền cho từng loại Hồng Bao.
+- **Hệ thống Âm thanh**: Âm thanh riêng biệt cho từng cấp độ, đặc biệt là âm thanh "Thần thánh" cho giải Huyền Thoại.
 
 ### Công nghệ sử dụng
 
@@ -132,10 +133,11 @@ npx serve .
 
 ### Hướng dẫn Sử dụng
 
-1. **Cài đặt**: Bấm vào biểu tượng **Bánh răng** để nhập số lượng tiền và tỷ lệ trúng thưởng cho từng mức.
-2. **Chọn Chế độ**: Gạt nút chuyển đổi giữa **OW** (Overwatch) và **CS:GO** ở góc trên.
-3. **Mở quà**: Bấm vào phong bao Lì Xì trên màn hình để bắt đầu!
-4. **Tận hưởng**: Chờ xem hiệu ứng và nhận kết quả may mắn.
+1. **Quản lý Hộp**: Bấm nút **Quản lý** (Balo) để tạo hộp mới hoặc chọn hộp cần dùng.
+2. **Cài đặt**: Bấm nút **Cài đặt** (Bánh răng) để sửa tỷ lệ, danh sách tiền, và trang trí màu sắc/chữ cho hộp hiện tại.
+3. **Chọn Chế độ**: Gạt nút chuyển đổi giữa **OW** (Overwatch) và **CS:GO** ở góc trên.
+4. **Mở quà**: Bấm vào phong bao Lì Xì trên màn hình để bắt đầu!
+5. **Thống kê**: Bấm nút **Thống kê** để xem lịch sử và tổng tiền đã lì xì.
 
 ---
 

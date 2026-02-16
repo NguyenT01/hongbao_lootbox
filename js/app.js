@@ -3,16 +3,24 @@
 // ============================================
 
 // ===== STATE =====
-let config = loadConfig();
+// ===== STATE =====
+// let config = loadConfig(); // DEPRECATED
 let lootboxState = "idle"; // idle | shaking | opening | result
 let history = JSON.parse(localStorage.getItem("hb_history") || "[]");
 let currentMode = localStorage.getItem("hb_mode") || "overwatch"; // "overwatch" | "csgo"
+let currentLootbox = null;
 
 // ===== INITIALIZATION =====
 document.addEventListener("DOMContentLoaded", () => {
-  renderConfigPanel();
-  renderHistory();
-  renderTierInfoPanel();
+  // Load Lootbox Data
+  LootboxData.load();
+  currentLootbox = LootboxData.getSelected();
+
+  // Initial Render
+  renderLootboxStyle(currentLootbox);
+  renderConfigPanel(); // This might need update to use currentLootbox.config
+  renderTierInfoPanel(); // Needs update?
+  renderHistory(); // Needs update?
   startBackgroundParticles();
 
   // Sound
@@ -26,13 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mode
   applyMode(currentMode);
 
+  // Initialize Lootbox Manager UI
+  if (typeof initLootboxManagerUI === "function") {
+      initLootboxManagerUI();
+  }
+
   // === Event listeners ===
 
   // Overwatch lootbox click
   const owContainer = document.querySelector("#lootbox-container-ow");
   if (owContainer) {
     owContainer.addEventListener("click", () => {
-      if (currentMode === "overwatch") owHandleLootboxClick();
+      if (currentMode === "overwatch") owHandleLootboxClick(currentLootbox.config);
     });
   }
 
@@ -40,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const csgoContainer = document.querySelector("#hongbao-container-csgo");
   if (csgoContainer) {
     csgoContainer.addEventListener("click", () => {
-      if (currentMode === "csgo") CSGO.handleOpen();
+      if (currentMode === "csgo") CSGO.handleOpen(currentLootbox.config);
     });
   }
 
@@ -170,9 +183,22 @@ function applyMode(mode) {
 
 // ===== HISTORY =====
 function addToHistory(result, tier) {
-  history.unshift({ tier: tier.id, value: result.value, time: Date.now() });
+  const item = { 
+      tier: tier.id, 
+      value: result.value, 
+      time: Date.now(),
+      lootboxId: currentLootbox ? currentLootbox.id : "unknown"
+  };
+  
+  history.unshift(item);
   if (history.length > 200) history = history.slice(0, 200);
   localStorage.setItem("hb_history", JSON.stringify(history));
+  
+  // Add to Per-Lootbox Stats
+  if (currentLootbox) {
+      LootboxData.addHistoryItem(currentLootbox.id, item);
+  }
+  
   renderHistory();
 }
 
@@ -250,6 +276,48 @@ function initCsgoSettingsUI() {
       if (CSGO.setSpinWidth) CSGO.setSpinWidth(val);
     });
   }
+}
+
+// ===== LOOTBOX STYLE RENDERING =====
+
+function renderLootboxStyle(lootbox) {
+  if (!lootbox) return;
+  const s = lootbox.style;
+  const root = document.documentElement;
+
+  // Apply CSS Variables
+  root.style.setProperty("--hb-bg-gradient", s.bgGradient);
+  root.style.setProperty("--hb-border-color", s.borderColor);
+  root.style.setProperty("--hb-accent-color", s.accentColor);
+  root.style.setProperty("--hb-text-color", s.textColor);
+
+  // Update Text Labels
+  
+  // Helper to update labels in a box
+  const updateLabels = (boxId) => {
+      const boxFront = document.querySelector(`${boxId} .hongbao-front`);
+      if (!boxFront) return;
+      
+      const pTags = boxFront.querySelectorAll("div > p"); // Select p tags inside the center div
+      if (pTags.length >= 1) {
+          pTags[0].textContent = s.labelMain;
+          pTags[0].style.color = s.textColor;
+      }
+      if (pTags.length >= 2) {
+          pTags[1].textContent = s.labelSub;
+          // Sub label keeps default color (border-color var)
+      }
+  };
+
+  updateLabels("#hongbao-box-ow");
+  updateLabels("#hongbao-box-csgo");
+}
+
+function updateLootboxUI() {
+    currentLootbox = LootboxData.getSelected();
+    renderLootboxStyle(currentLootbox);
+    // Refresh panels if needed
+    // if (isConfigOpen) renderConfigPanel();
 }
 
 function toggleCsgoPopover() {

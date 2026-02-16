@@ -165,6 +165,15 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           <span class="hidden sm:inline font-semibold">Thống kê</span>
         </button>
+        <!-- Manage Lootboxes -->
+        <button
+          id="btn-manage-lootboxes"
+          class="flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 hover:from-purple-500/30 hover:to-blue-500/30 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 cursor-pointer"
+          title="Quản lý Hộp"
+        >
+          <span class="text-xl">🎒</span>
+          <span class="hidden sm:inline font-semibold text-purple-200">Quản lý</span>
+        </button>
         <!-- Config -->
         <button
           id="btn-config"
@@ -210,23 +219,21 @@
           >
             <!-- Front face -->
             <div
-              class="hongbao-front absolute inset-0 rounded-3xl shadow-2xl overflow-hidden border-2 border-yellow-600/50"
+              class="hongbao-front absolute inset-0 rounded-3xl shadow-2xl overflow-hidden border-2"
               style="
-                background: linear-gradient(
-                  170deg,
-                  #d32f2f 0%,
-                  #b71c1c 40%,
-                  #880e0e 100%
-                );
+                background: var(--hb-bg-gradient, linear-gradient(170deg, #d32f2f 0%, #b71c1c 40%, #880e0e 100%));
+                border-color: var(--hb-border-color, rgba(202, 138, 4, 0.5));
                 backface-visibility: hidden;
               "
             >
               <!-- Gold decorative frame -->
               <div
-                class="absolute inset-3 rounded-2xl border-2 border-yellow-500/40"
+                class="absolute inset-3 rounded-2xl border-2"
+                style="border-color: var(--hb-accent-color, rgba(234, 179, 8, 0.4));"
               ></div>
               <div
-                class="absolute inset-5 rounded-xl border border-yellow-500/20"
+                class="absolute inset-5 rounded-xl border"
+                style="border-color: var(--hb-accent-color, rgba(234, 179, 8, 0.2));"
               ></div>
 
               <!-- Center emblem -->
@@ -235,21 +242,29 @@
               >
                 <!-- Fu character -->
                 <div
-                  class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-900/50 border-4 border-yellow-300/60"
+                  class="w-28 h-28 md:w-32 md:h-32 rounded-full flex items-center justify-center shadow-lg shadow-yellow-900/50 border-4"
+                  style="
+                    background: linear-gradient(to bottom right, var(--hb-accent-color, #facc15), var(--hb-border-color, #ca8a04));
+                    border-color: var(--hb-accent-color, rgba(253, 224, 71, 0.6));
+                  "
                 >
                   <span
-                    class="font-display text-6xl md:text-7xl text-red-900"
-                    style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3)"
+                    class="font-display text-6xl md:text-7xl"
+                    style="
+                        color: var(--hb-text-color, #7f1d1d);
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3)
+                    "
                     >福</span
                   >
                 </div>
                 <!-- Label -->
                 <p
-                  class="mt-4 font-display text-yellow-300 text-lg tracking-[0.3em]"
+                  class="mt-4 font-display text-lg tracking-[0.3em]"
+                  style="color: var(--hb-accent-color, #fde047);"
                 >
                   LÌ XÌ
                 </p>
-                <p class="mt-1 text-yellow-400/60 text-xs tracking-[0.5em]">
+                <p class="mt-1 text-xs tracking-[0.5em]" style="color: var(--hb-border-color, rgba(250, 204, 21, 0.6));">
                   HỒNG BAO
                 </p>
               </div>
@@ -298,23 +313,21 @@
           >
             <!-- Front face -->
             <div
-              class="hongbao-front absolute inset-0 rounded-3xl shadow-2xl overflow-hidden border-2 border-yellow-600/50"
+              class="hongbao-front absolute inset-0 rounded-3xl shadow-2xl overflow-hidden border-2"
               style="
-                background: linear-gradient(
-                  170deg,
-                  #d32f2f 0%,
-                  #b71c1c 40%,
-                  #880e0e 100%
-                );
+                background: var(--hb-bg-gradient, linear-gradient(170deg, #d32f2f 0%, #b71c1c 40%, #880e0e 100%));
+                border-color: var(--hb-border-color, rgba(202, 138, 4, 0.5));
                 backface-visibility: hidden;
               "
             >
               <!-- Gold decorative frame -->
               <div
-                class="absolute inset-3 rounded-2xl border-2 border-yellow-500/40"
+                class="absolute inset-3 rounded-2xl border-2"
+                style="border-color: var(--hb-accent-color, rgba(234, 179, 8, 0.4));"
               ></div>
               <div
-                class="absolute inset-5 rounded-xl border border-yellow-500/20"
+                class="absolute inset-5 rounded-xl border"
+                style="border-color: var(--hb-accent-color, rgba(234, 179, 8, 0.2));"
               ></div>
 
               <!-- Center emblem -->
@@ -323,21 +336,29 @@
               >
                 <!-- Fu character -->
                 <div
-                  class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-900/50 border-4 border-yellow-300/60"
+                  class="w-28 h-28 md:w-32 md:h-32 rounded-full flex items-center justify-center shadow-lg shadow-yellow-900/50 border-4"
+                  style="
+                    background: linear-gradient(to bottom right, var(--hb-accent-color, #facc15), var(--hb-border-color, #ca8a04));
+                    border-color: var(--hb-accent-color, rgba(253, 224, 71, 0.6));
+                  "
                 >
                   <span
-                    class="font-display text-6xl md:text-7xl text-red-900"
-                    style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3)"
+                    class="font-display text-6xl md:text-7xl"
+                    style="
+                        color: var(--hb-text-color, #7f1d1d);
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3)
+                    "
                     >福</span
                   >
                 </div>
                 <!-- Label -->
                 <p
-                  class="mt-4 font-display text-yellow-300 text-lg tracking-[0.3em]"
+                  class="mt-4 font-display text-lg tracking-[0.3em]"
+                  style="color: var(--hb-accent-color, #fde047);"
                 >
                   LÌ XÌ
                 </p>
-                <p class="mt-1 text-yellow-400/60 text-xs tracking-[0.5em]">
+                <p class="mt-1 text-xs tracking-[0.5em]" style="color: var(--hb-border-color, rgba(250, 204, 21, 0.6));">
                   HỒNG BAO
                 </p>
               </div>
@@ -562,6 +583,29 @@
             </button>
           </div>
 
+          <!-- Tabs -->
+          <div class="flex items-center gap-2 px-6 mb-4">
+            <button
+              id="btn-stats-global"
+              class="flex-1 py-2 rounded-lg text-sm font-bold bg-white/20 text-white shadow-sm transition-all"
+            >
+              Toàn bộ
+            </button>
+            <button
+              id="btn-stats-current"
+              class="flex-1 py-2 rounded-lg text-sm font-bold text-white/50 hover:text-white transition-all"
+            >
+              Hộp hiện tại
+            </button>
+          </div>
+          
+          <!-- Global Filter (only visible in Global tab) -->
+          <div id="stats-filter-wrapper" class="px-6 mb-4">
+            <select id="stats-filter-lootbox" class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30">
+                <option value="all">Tất cả loại hộp</option>
+            </select>
+          </div>
+
           <!-- Summary cards -->
           <div id="stats-summary" class="grid grid-cols-2 gap-3 mb-6"></div>
 
@@ -607,13 +651,130 @@
       class="fixed inset-0 z-40 pointer-events-none opacity-0 bg-white"
     ></div>
 
-    <!-- JS Modules (order matters: config → effects → sound → ui → overwatch → csgo → app) -->
-    <script src="js/config.js"></script>
-    <script src="js/effects.js"></script>
+    <!-- ===== LOOTBOX MANAGER MODAL ===== -->
+    <div
+      id="lootbox-manager-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300"
+    >
+      <div id="manager-backdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+      <div
+        class="relative w-full max-w-4xl bg-gray-900 border border-white/10 rounded-3xl p-6 md:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="font-display text-2xl text-white">Quản Lý Hồng Bao</h2>
+          <button id="btn-close-manager" class="text-white/50 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+          <div id="lootbox-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Items injected by JS -->
+          </div>
+          
+          <button 
+            id="btn-create-lootbox"
+            class="mt-4 w-full border-2 border-dashed border-white/20 rounded-2xl p-4 flex items-center justify-center gap-2 text-white/50 hover:text-white hover:border-white/40 transition-colors"
+          >
+            <span class="text-2xl">+</span>
+            <span>Tạo Hồng Bao Mới</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LOOTBOX EDITOR MODAL ===== -->
+    <div
+      id="lootbox-editor-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300"
+    >
+      <div id="editor-backdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+      <div
+        class="relative w-full max-w-2xl bg-gray-900 border border-white/10 rounded-3xl p-6 md:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="font-display text-2xl text-white" id="editor-title">Tùy Chỉnh Hồng Bao</h2>
+          <button id="btn-close-editor" class="text-white/50 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <form id="editor-form" class="space-y-6">
+          <!-- Basic Info -->
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Tên Hồng Bao</label>
+            <input type="text" id="edit-name" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-500" placeholder="Ví dụ: Tết Sum Vầy" required>
+          </div>
+
+          <!-- Styling -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">Màu Chính (Gradient Start)</label>
+              <input type="color" id="edit-color-start" class="w-full h-10 rounded-lg cursor-pointer bg-transparent" value="#d32f2f">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">Màu Phụ (Gradient End)</label>
+              <input type="color" id="edit-color-end" class="w-full h-10 rounded-lg cursor-pointer bg-transparent" value="#880e0e">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">Màu Viền</label>
+              <input type="color" id="edit-color-border" class="w-full h-10 rounded-lg cursor-pointer bg-transparent" value="#fdd835">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">Màu Chữ</label>
+              <input type="color" id="edit-color-text" class="w-full h-10 rounded-lg cursor-pointer bg-transparent" value="#ffeb3b">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">Chữ Tiêu Đề</label>
+              <input type="text" id="edit-label-main" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-500" value="LÌ XÌ">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">Chữ Phụ</label>
+              <input type="text" id="edit-label-sub" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-500" value="HỒNG BAO">
+            </div>
+          </div>
+
+          <!-- Config (Drop Rates) -->
+          <div class="border-t border-white/10 pt-4">
+            <h3 class="font-display text-lg text-white mb-2">Cấu hình Tỷ lệ & Tiền</h3>
+            <p class="text-xs text-gray-400 mb-4">Các giá trị này sẽ áp dụng riêng cho loại Hồng Bao này.</p>
+            <div id="editor-tiers-container" class="space-y-4">
+                <!-- Javascript will inject inputs here based on TIERS -->
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4">
+            <button type="button" id="btn-cancel-editor" class="px-6 py-2 rounded-xl text-gray-300 hover:bg-white/5 transition-colors">Hủy</button>
+            <button type="submit" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-6 rounded-xl shadow-lg shadow-yellow-600/20 transition-all">Lưu Thay Đổi</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" id="confirm-backdrop"></div>
+        <div class="relative bg-neutral-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-100 transition-all">
+            <h3 class="text-xl font-bold text-white mb-2 confirm-title">Xác nhận</h3>
+            <p class="text-white/60 mb-6 confirm-message">Bạn có chắc chắn muốn thực hiện?</p>
+            <div class="flex gap-3">
+                <button class="flex-1 py-2 rounded-xl font-bold bg-white/10 hover:bg-white/20 text-white transition-all btn-cancel cursor-pointer">Huỷ</button>
+                <button class="flex-1 py-2 rounded-xl font-bold bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 transition-all btn-confirm cursor-pointer">Xoá</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="js/sound.js"></script>
-    <script src="js/ui.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/lootbox-data.js"></script>
+    <script src="js/effects.js"></script>
     <script src="js/overwatch.js"></script>
     <script src="js/csgo.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

@@ -62,6 +62,10 @@ const TIERS = [
 
 // ===== CONFIG MANAGEMENT =====
 
+// ===== CONFIG MANAGEMENT — LEGACY DEPRECATED =====
+// Config is now managed by LootboxData per instance.
+// This file keeps TIERS and Logic helper.
+
 function getDefaultConfig() {
   const cfg = {};
   TIERS.forEach((tier) => {
@@ -73,43 +77,37 @@ function getDefaultConfig() {
   return cfg;
 }
 
-function loadConfig() {
-  const saved = localStorage.getItem("hb_config");
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {
-      // fall through to default
-    }
-  }
-  return getDefaultConfig();
-}
-
-function saveConfigToStorage() {
-  localStorage.setItem("hb_config", JSON.stringify(config));
-}
-
 // ===== ROLL LOGIC =====
 
-function rollLootbox() {
+function rollLootbox(lootboxConfig) { 
+  // Safety check
+  const cfg = lootboxConfig || getDefaultConfig();
+  
   const rand = Math.random() * 100;
   let cumulative = 0;
 
   for (const tier of TIERS) {
-    cumulative += config[tier.id].rate;
+    // If tier config missing, skip or use default? 
+    // Assume cfg has all tiers if created properly.
+    const tierCfg = cfg[tier.id] || { rate: 0, values: [] };
+    
+    cumulative += tierCfg.rate;
     if (rand <= cumulative) {
-      const values = config[tier.id].values;
-      const value = values[Math.floor(Math.random() * values.length)];
+      const values = tierCfg.values;
+      // If no values defined, fallback or return 0?
+      const value = (values && values.length > 0) 
+        ? values[Math.floor(Math.random() * values.length)]
+        : 0;
       return { tier: tier.id, value };
     }
   }
 
   // Fallback to last tier
   const lastTier = TIERS[TIERS.length - 1];
-  const values = config[lastTier.id].values;
+  const values = cfg[lastTier.id] ? cfg[lastTier.id].values : [];
   return {
     tier: lastTier.id,
-    value: values[Math.floor(Math.random() * values.length)],
+    value: (values && values.length > 0) ? values[Math.floor(Math.random() * values.length)] : 0,
   };
 }
 

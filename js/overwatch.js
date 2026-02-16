@@ -2,11 +2,14 @@
 // OVERWATCH — Overwatch-style lootbox opening
 // ============================================
 
-function owHandleLootboxClick() {
+function owHandleLootboxClick(lootboxConfig) {
   if (lootboxState !== "idle") return;
 
+  // Use passed config or default
+  const currentConfig = lootboxConfig || getDefaultConfig();
+
   const hasValues = TIERS.some(
-    (t) => config[t.id].values.length > 0 && config[t.id].rate > 0,
+    (t) => currentConfig[t.id].values.length > 0 && currentConfig[t.id].rate > 0,
   );
   if (!hasValues) {
     showToast("⚠️ Hãy cài đặt giá trị tiền trước!");
@@ -18,7 +21,7 @@ function owHandleLootboxClick() {
   instructionText.style.display = "none";
 
   // Roll once
-  const result = rollLootbox();
+  const result = rollLootbox(currentConfig);
   const tier = TIERS.find((t) => t.id === result.tier);
 
   const hongbaoBox = document.querySelector("#hongbao-box-ow");
@@ -93,14 +96,20 @@ function owShowResult(result, tier) {
   const resultCard = document.querySelector("#result-card");
   const resultCardGlow = document.querySelector("#result-card-glow");
   const resultTierBadge = document.querySelector("#result-tier-badge");
-  const resultAmount = document.querySelector("#result-amount");
   const resultDisplay = document.querySelector("#result-display");
+  const resultAmount = document.querySelector("#result-amount"); // Restored
+  const resultLabel = document.querySelector("#result-label");
   const glowRing = document.querySelector("#glow-ring-ow");
 
   gsap.to(rarityBeam, { opacity: 0, duration: 1 });
 
+  resultDisplay.classList.remove("hidden");
+  resultDisplay.classList.add("flex");
+
+  // Use shared helper for amount sizing
+  displayResult(result.value);
+
   // Style card
-  resultCard.style.borderColor = tier.color + "40";
   resultCard.style.boxShadow = `0 8px 32px ${tier.color}25, 0 20px 60px rgba(0,0,0,0.4)`;
   resultCard.style.setProperty("--tier-color", tier.color);
   resultCard.classList.add("result-card-shine");

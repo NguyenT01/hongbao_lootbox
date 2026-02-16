@@ -79,6 +79,7 @@ const CSGO = (() => {
   window.addEventListener("resize", applySpinWidth);
 
   let isSpinning = false;
+  let currentConfig = null; // Store config for this session
 
   function show() {
     document.querySelector("#csgo-area").classList.remove("hidden");
@@ -88,12 +89,13 @@ const CSGO = (() => {
     document.querySelector("#csgo-area").classList.add("hidden");
   }
 
-  function handleOpen() {
+  function handleOpen(lootboxConfig) {
     if (isSpinning) return;
+    currentConfig = lootboxConfig || getDefaultConfig();
     
     // Check if we can afford it (if implementing currency later)
     // For now, check if user set values
-    const hasValues = TIERS.some(t => config[t.id].values.length > 0 && config[t.id].rate > 0);
+    const hasValues = TIERS.some(t => currentConfig[t.id].values.length > 0 && currentConfig[t.id].rate > 0);
     if (!hasValues) {
       showToast("⚠️ Hãy cài đặt giá trị tiền trước!");
       return;
@@ -150,7 +152,7 @@ const CSGO = (() => {
              
              // 4. Start spin (with small delay to ensure rendering)
              setTimeout(() => {
-                const result = rollLootbox();
+                const result = rollLootbox(currentConfig); // Pass config!
                 startSpin(result);
              }, 100);
 
@@ -170,7 +172,7 @@ const CSGO = (() => {
     const items = [];
 
     for (let i = 0; i < totalItems; i++) {
-      const roll = rollLootbox();
+      const roll = rollLootbox(currentConfig); // Use current lootbox config
       const tier = TIERS.find((t) => t.id === roll.tier);
       items.push({ tier, value: roll.value });
     }
@@ -317,8 +319,11 @@ const CSGO = (() => {
 
     // Number counter
     const targetValue = result.value;
-    const counterDuration = 1500;
+    const counterDuration = 1500; // spin + delay makes this safe
     const startTime = Date.now();
+    
+    // Set font size based on target
+    displayResult(targetValue);
 
     resultDisplay.classList.remove("hidden");
     resultDisplay.classList.add("flex");
