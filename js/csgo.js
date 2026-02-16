@@ -278,8 +278,7 @@ const CSGO = (() => {
     }
 
     // Sound
-    const isEpic = tier.id === "legendary" || tier.id === "epic";
-    SoundEngine.reveal(isEpic);
+    SoundEngine.playTierSound(tier.id);
 
     // Confetti
     fireConfetti(tier);

@@ -113,8 +113,7 @@ function owShowResult(result, tier) {
   resultAmount.style.textShadow = `0 0 10px ${tier.color}80, 0 2px 4px rgba(0,0,0,0.5)`;
 
   // Sound
-  const isEpic = tier.id === "legendary" || tier.id === "epic";
-  SoundEngine.reveal(isEpic);
+  SoundEngine.playTierSound(tier.id);
 
   // Number counter
   const targetValue = result.value;
